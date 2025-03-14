@@ -1,5 +1,7 @@
 // Weather API key
 const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
+// Unsplash API key (using demo key - replace with your own for production)
+const UNSPLASH_API_KEY = 'demo';
 
 // Initialize the globe
 const globe = Globe()
@@ -10,12 +12,11 @@ const globe = Globe()
     .height(window.innerHeight)
     (document.getElementById('globe-container'));
 
-// Add ambient light
-const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.8);
+// Adjust globe lighting
+const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3); // Reduced brightness
 globe.scene().add(ambientLight);
 
-// Add directional light
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6); // Reduced brightness
 directionalLight.position.set(1, 1, 1);
 globe.scene().add(directionalLight);
 
@@ -185,8 +186,69 @@ function createDynamicBackground(weatherType) {
     document.body.insertBefore(background, document.body.firstChild);
 }
 
+async function getCityImage(cityName) {
+    try {
+        // First try to get a city-specific image
+        const response = await fetch(
+            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(cityName + ' city skyline')}&orientation=landscape&per_page=1`,
+            {
+                headers: {
+                    'Authorization': `Client-ID ${UNSPLASH_API_KEY}`
+                }
+            }
+        );
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            return data.results[0].urls.regular;
+        }
+        
+        // If no city-specific image, try to get a generic city image
+        const fallbackResponse = await fetch(
+            `https://api.unsplash.com/search/photos?query=city skyline&orientation=landscape&per_page=1`,
+            {
+                headers: {
+                    'Authorization': `Client-ID ${UNSPLASH_API_KEY}`
+                }
+            }
+        );
+        const fallbackData = await fallbackResponse.json();
+        
+        if (fallbackData.results && fallbackData.results.length > 0) {
+            return fallbackData.results[0].urls.regular;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error fetching city image:', error);
+        return null;
+    }
+}
+
+function createCityBackground(imageUrl) {
+    // Remove existing background
+    const oldBackground = document.querySelector('.weather-background');
+    if (oldBackground) {
+        oldBackground.remove();
+    }
+
+    const background = document.createElement('div');
+    background.className = 'weather-background city-background';
+    
+    // Create an overlay for weather effects
+    const weatherOverlay = document.createElement('div');
+    weatherOverlay.className = 'weather-overlay';
+    
+    // Set the city image as background
+    background.style.backgroundImage = `url(${imageUrl})`;
+    
+    background.appendChild(weatherOverlay);
+    document.body.insertBefore(background, document.body.firstChild);
+}
+
 async function getWeather(city) {
     try {
+        // Fetch weather data
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`);
         const data = await response.json();
         
@@ -202,16 +264,24 @@ async function getWeather(city) {
             </div>
         `;
 
-        // Set dynamic background based on weather condition
-        const weatherId = data.weather[0].id;
-        if (weatherId >= 200 && weatherId < 600) {
-            createDynamicBackground('rainy');
-        } else if (weatherId === 800) {
-            createDynamicBackground('clear');
-        } else if (weatherId === 801) {
-            createDynamicBackground('sunny');
-        } else if (weatherId >= 802) {
-            createDynamicBackground('cloudy');
+        // Get and set city image as background
+        const cityImage = await getCityImage(city);
+        if (cityImage) {
+            createCityBackground(cityImage);
+            
+            // Add weather overlay effects
+            const weatherOverlay = document.querySelector('.weather-overlay');
+            const weatherId = data.weather[0].id;
+            
+            if (weatherId >= 200 && weatherId < 600) {
+                weatherOverlay.className = 'weather-overlay rainy';
+            } else if (weatherId === 800) {
+                weatherOverlay.className = 'weather-overlay clear';
+            } else if (weatherId === 801) {
+                weatherOverlay.className = 'weather-overlay sunny';
+            } else if (weatherId >= 802) {
+                weatherOverlay.className = 'weather-overlay cloudy';
+            }
         }
 
         // Focus globe on the city location
