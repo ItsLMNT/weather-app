@@ -3,19 +3,19 @@ const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
 
 // Initialize the globe
 const globe = Globe()
-    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
-    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-    .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+    .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
+    .bumpImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
+    .backgroundImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png')
     .width(window.innerWidth)
     .height(window.innerHeight)
     (document.getElementById('globe-container'));
 
 // Add ambient light
-const ambientLight = new THREE.AmbientLight(0xbbbbbb);
+const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.8);
 globe.scene().add(ambientLight);
 
 // Add directional light
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(1, 1, 1);
 globe.scene().add(directionalLight);
 
@@ -90,44 +90,96 @@ function focusLocation(lat, lng) {
     animateCamera();
 }
 
-function createWeatherBackground(weatherType) {
-    // Remove existing background
+// Create dynamic background scene
+function createDynamicBackground(weatherType) {
+    const background = document.createElement('div');
+    background.className = `weather-background ${weatherType}`;
+    
+    // Remove any existing background
     const oldBackground = document.querySelector('.weather-background');
     if (oldBackground) {
         oldBackground.remove();
     }
 
-    const background = document.createElement('div');
-    background.className = `weather-background ${weatherType}`;
+    // Create weather-specific elements and animations
+    switch(weatherType) {
+        case 'clear':
+            // Clear sky with moving clouds and sun
+            const sun = document.createElement('div');
+            sun.className = 'sun-dynamic';
+            background.appendChild(sun);
 
-    if (weatherType === 'rainy') {
-        // Create enhanced rain drops
-        for (let i = 0; i < 100; i++) {
-            const rain = document.createElement('div');
-            rain.className = 'rain';
-            rain.style.left = `${Math.random() * 100}%`;
-            rain.style.animationDuration = `${Math.random() * 1 + 0.5}s`;
-            rain.style.animationDelay = `${Math.random() * 2}s`;
-            rain.style.opacity = Math.random();
-            background.appendChild(rain);
-        }
-    } else if (weatherType === 'sunny') {
-        // Create enhanced sun
-        const sun = document.createElement('div');
-        sun.className = 'sun';
-        background.appendChild(sun);
-    } else if (weatherType === 'cloudy') {
-        // Create enhanced clouds
-        for (let i = 0; i < 5; i++) {
-            const cloud = document.createElement('div');
-            cloud.className = 'cloud';
-            cloud.style.top = `${Math.random() * 50}%`;
-            cloud.style.left = `${Math.random() * 100}%`;
-            cloud.style.width = `${Math.random() * 100 + 100}px`;
-            cloud.style.height = `${Math.random() * 30 + 30}px`;
-            cloud.style.animationDelay = `${Math.random() * 5}s`;
-            background.appendChild(cloud);
-        }
+            // Add some sparse clouds
+            for (let i = 0; i < 3; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud-sparse';
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDelay = `${Math.random() * 10}s`;
+                background.appendChild(cloud);
+            }
+            break;
+
+        case 'rainy':
+            // Create rain container
+            const rainContainer = document.createElement('div');
+            rainContainer.className = 'rain-container';
+            
+            // Add dark clouds
+            for (let i = 0; i < 8; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'rain-cloud';
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDelay = `${Math.random() * 5}s`;
+                background.appendChild(cloud);
+            }
+            
+            // Add raindrops
+            for (let i = 0; i < 150; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'raindrop';
+                drop.style.left = `${Math.random() * 100}%`;
+                drop.style.animationDuration = `${Math.random() * 0.5 + 0.7}s`;
+                drop.style.animationDelay = `${Math.random() * 2}s`;
+                rainContainer.appendChild(drop);
+            }
+            background.appendChild(rainContainer);
+            break;
+
+        case 'cloudy':
+            // Multiple layers of clouds
+            for (let i = 0; i < 12; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud-dynamic';
+                cloud.style.left = `${Math.random() * 120 - 20}%`;
+                cloud.style.top = `${Math.random() * 60}%`;
+                cloud.style.transform = `scale(${Math.random() * 0.5 + 0.5})`;
+                cloud.style.animationDuration = `${Math.random() * 30 + 30}s`;
+                cloud.style.animationDelay = `${Math.random() * -30}s`;
+                cloud.style.opacity = Math.random() * 0.3 + 0.7;
+                background.appendChild(cloud);
+            }
+            break;
+
+        case 'sunny':
+            // Create bright sun with rays
+            const brightSun = document.createElement('div');
+            brightSun.className = 'sun-bright';
+            background.appendChild(brightSun);
+
+            // Add heat waves effect
+            const heatWaves = document.createElement('div');
+            heatWaves.className = 'heat-waves';
+            background.appendChild(heatWaves);
+
+            // Add some light clouds
+            for (let i = 0; i < 4; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud-light';
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDelay = `${Math.random() * 20}s`;
+                background.appendChild(cloud);
+            }
+            break;
     }
 
     document.body.insertBefore(background, document.body.firstChild);
@@ -150,14 +202,16 @@ async function getWeather(city) {
             </div>
         `;
 
-        // Set weather background based on weather condition
+        // Set dynamic background based on weather condition
         const weatherId = data.weather[0].id;
         if (weatherId >= 200 && weatherId < 600) {
-            createWeatherBackground('rainy');
-        } else if (weatherId >= 800 && weatherId < 802) {
-            createWeatherBackground('sunny');
+            createDynamicBackground('rainy');
+        } else if (weatherId === 800) {
+            createDynamicBackground('clear');
+        } else if (weatherId === 801) {
+            createDynamicBackground('sunny');
         } else if (weatherId >= 802) {
-            createWeatherBackground('cloudy');
+            createDynamicBackground('cloudy');
         }
 
         // Focus globe on the city location
