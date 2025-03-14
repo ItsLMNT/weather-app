@@ -1,7 +1,7 @@
 // Weather API key
 const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
-// Unsplash API key (using demo key - replace with your own for production)
-const UNSPLASH_API_KEY = 'demo';
+// Unsplash API key
+const UNSPLASH_API_KEY = 'dOPF9oZ1c1orjCY8oQ-12Tzd2wim3aVzlb9EQLgfiA4';
 
 // Initialize the globe
 const globe = Globe()
