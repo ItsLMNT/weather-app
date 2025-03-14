@@ -188,7 +188,7 @@ function createDynamicBackground(weatherType) {
 
 async function getCityImage(cityName) {
     try {
-        // First try to get a city-specific image
+        console.log('Fetching image for:', cityName);
         const response = await fetch(
             `https://api.unsplash.com/search/photos?query=${encodeURIComponent(cityName + ' city skyline')}&orientation=landscape&per_page=1`,
             {
@@ -197,35 +197,31 @@ async function getCityImage(cityName) {
                 }
             }
         );
+        
+        if (!response.ok) {
+            throw new Error(`Unsplash API error: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('Unsplash API Response:', data);
         
         if (data.results && data.results.length > 0) {
+            console.log('Found city image:', data.results[0].urls.regular);
             return data.results[0].urls.regular;
         }
         
-        // If no city-specific image, try to get a generic city image
-        const fallbackResponse = await fetch(
-            `https://api.unsplash.com/search/photos?query=city skyline&orientation=landscape&per_page=1`,
-            {
-                headers: {
-                    'Authorization': `Client-ID ${UNSPLASH_API_KEY}`
-                }
-            }
-        );
-        const fallbackData = await fallbackResponse.json();
-        
-        if (fallbackData.results && fallbackData.results.length > 0) {
-            return fallbackData.results[0].urls.regular;
-        }
-        
+        console.log('No specific city image found, trying generic skyline...');
         return null;
     } catch (error) {
         console.error('Error fetching city image:', error);
+        console.error('Full error:', error.message);
         return null;
     }
 }
 
 function createCityBackground(imageUrl) {
+    console.log('Creating city background with URL:', imageUrl);
+    
     // Remove existing background
     const oldBackground = document.querySelector('.weather-background');
     if (oldBackground) {
@@ -241,13 +237,16 @@ function createCityBackground(imageUrl) {
     
     // Set the city image as background
     background.style.backgroundImage = `url(${imageUrl})`;
+    console.log('Set background image style');
     
     background.appendChild(weatherOverlay);
     document.body.insertBefore(background, document.body.firstChild);
+    console.log('Background element added to DOM');
 }
 
 async function getWeather(city) {
     try {
+        console.log('Getting weather for:', city);
         // Fetch weather data
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`);
         const data = await response.json();
@@ -265,8 +264,10 @@ async function getWeather(city) {
         `;
 
         // Get and set city image as background
+        console.log('Fetching city image...');
         const cityImage = await getCityImage(city);
         if (cityImage) {
+            console.log('Creating background with image:', cityImage);
             createCityBackground(cityImage);
             
             // Add weather overlay effects
@@ -282,13 +283,15 @@ async function getWeather(city) {
             } else if (weatherId >= 802) {
                 weatherOverlay.className = 'weather-overlay cloudy';
             }
+        } else {
+            console.log('No city image found, using default background');
         }
 
         // Focus globe on the city location
         focusLocation(data.coord.lat, data.coord.lon);
 
     } catch (error) {
-        console.error('Error fetching weather:', error);
+        console.error('Error in getWeather:', error);
         document.getElementById('weather-info').innerHTML = `
             <h2>Error loading weather data</h2>
             <p>Please try again later</p>
