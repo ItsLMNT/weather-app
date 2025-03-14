@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>World Weather Globe</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Three.js for 3D globe -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Globe.GL for easy globe visualization -->
-    <script src="https://unpkg.com/globe.gl"></script>
-    <!-- Custom country hover effects -->
-    <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
 <body>
     <div class="search-container">
@@ -26,6 +20,27 @@
         </div>
     </div>
 
+    <!-- Load Three.js first -->
+    <script src="https://unpkg.com/three@0.132.2/build/three.min.js"></script>
+    
+    <!-- Load Globe.GL after Three.js -->
+    <script src="https://unpkg.com/globe.gl@2.26.11/dist/globe.gl.min.js"></script>
+    
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Load your script last -->
     <script src="script.js"></script>
+
+    <!-- Add console output for debugging -->
+    <script>
+        console.log('Document loaded');
+        window.addEventListener('load', () => {
+            console.log('Window loaded');
+            console.log('Globe container:', document.getElementById('globe-container'));
+            console.log('Three.js version:', THREE.REVISION);
+            console.log('Globe.GL loaded:', typeof Globe !== 'undefined');
+        });
+    </script>
 </body>
 </html> 
