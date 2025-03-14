@@ -1,5 +1,48 @@
 // Weather API key (using OpenWeatherMap API)
-const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
+const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09'; // Replace with your actual API key
+
+function createWeatherBackground(weatherType) {
+    // Remove existing background
+    const oldBackground = document.querySelector('.weather-background');
+    if (oldBackground) {
+        oldBackground.remove();
+    }
+
+    const background = document.createElement('div');
+    background.className = `weather-background ${weatherType}`;
+
+    if (weatherType === 'rainy') {
+        // Create rain drops
+        for (let i = 0; i < 100; i++) {
+            const rain = document.createElement('div');
+            rain.className = 'rain';
+            rain.style.left = `${Math.random() * 100}%`;
+            rain.style.animationDuration = `${Math.random() * 1 + 0.5}s`;
+            rain.style.animationDelay = `${Math.random() * 2}s`;
+            rain.style.opacity = Math.random();
+            background.appendChild(rain);
+        }
+    } else if (weatherType === 'sunny') {
+        // Create sun
+        const sun = document.createElement('div');
+        sun.className = 'sun';
+        background.appendChild(sun);
+    } else if (weatherType === 'cloudy') {
+        // Create clouds
+        for (let i = 0; i < 5; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            cloud.style.top = `${Math.random() * 50}%`;
+            cloud.style.left = `${Math.random() * 100}%`;
+            cloud.style.width = `${Math.random() * 100 + 100}px`;
+            cloud.style.height = `${Math.random() * 30 + 30}px`;
+            cloud.style.animationDelay = `${Math.random() * 5}s`;
+            background.appendChild(cloud);
+        }
+    }
+
+    document.body.insertBefore(background, document.body.firstChild);
+}
 
 async function getWeather(city) {
     try {
@@ -17,6 +60,17 @@ async function getWeather(city) {
                 <div>Wind: ${data.wind.speed} km/h</div>
             </div>
         `;
+
+        // Set weather background based on weather condition
+        const weatherId = data.weather[0].id;
+        if (weatherId >= 200 && weatherId < 600) {
+            createWeatherBackground('rainy');
+        } else if (weatherId >= 800 && weatherId < 802) {
+            createWeatherBackground('sunny');
+        } else if (weatherId >= 802) {
+            createWeatherBackground('cloudy');
+        }
+
     } catch (error) {
         console.error('Error fetching weather:', error);
         document.getElementById('weather-info').innerHTML = `
