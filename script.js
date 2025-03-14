@@ -7,16 +7,20 @@ const UNSPLASH_API_KEY = 'dOPF9oZ1c1orjCY8oQ-12Tzd2wim3aVzlb9EQLgfiA4';
 const globe = Globe()
     .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
     .bumpImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
-    .backgroundImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png')
+    // Remove the fixed background
+    .backgroundColor('rgba(0,0,0,0)') // Make globe background transparent
     .width(window.innerWidth)
     .height(window.innerHeight)
     (document.getElementById('globe-container'));
 
+// Make the scene background transparent
+globe.renderer().setClearColor(0x000000, 0);
+
 // Adjust globe lighting
-const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3); // Reduced brightness
+const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
 globe.scene().add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6); // Reduced brightness
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
 directionalLight.position.set(1, 1, 1);
 globe.scene().add(directionalLight);
 
@@ -222,26 +226,32 @@ async function getCityImage(cityName) {
 function createCityBackground(imageUrl) {
     console.log('Creating city background with URL:', imageUrl);
     
-    // Remove existing background
-    const oldBackground = document.querySelector('.weather-background');
-    if (oldBackground) {
-        oldBackground.remove();
-    }
+    // Remove any existing backgrounds
+    const oldBackgrounds = document.querySelectorAll('.weather-background');
+    oldBackgrounds.forEach(bg => bg.remove());
 
+    // Create new background div
     const background = document.createElement('div');
     background.className = 'weather-background city-background';
     
-    // Create an overlay for weather effects
-    const weatherOverlay = document.createElement('div');
-    weatherOverlay.className = 'weather-overlay';
+    // Set inline styles directly
+    background.style.backgroundImage = `url('${imageUrl}')`;
+    background.style.opacity = '1';
     
-    // Set the city image as background
-    background.style.backgroundImage = `url(${imageUrl})`;
-    console.log('Set background image style');
+    // Add to DOM
+    document.body.prepend(background);
     
-    background.appendChild(weatherOverlay);
-    document.body.insertBefore(background, document.body.firstChild);
-    console.log('Background element added to DOM');
+    console.log('Background added to DOM');
+    
+    // Verify background
+    setTimeout(() => {
+        const computedStyle = window.getComputedStyle(background);
+        console.log('Verification - Background image:', computedStyle.backgroundImage);
+        console.log('Verification - Opacity:', computedStyle.opacity);
+        console.log('Verification - Z-index:', computedStyle.zIndex);
+    }, 100);
+    
+    return background;
 }
 
 async function getWeather(city) {
