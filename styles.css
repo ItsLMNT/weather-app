@@ -20,7 +20,7 @@ body {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 2;
+    z-index: 3;
     width: 300px;
 }
 
@@ -66,8 +66,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
-    filter: brightness(0.85); /* Reduce globe brightness */
+    z-index: 2;
+    filter: brightness(0.85);
+    pointer-events: all;
 }
 
 /* Weather Display */
@@ -76,9 +77,9 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 2;
+    z-index: 3;
     text-align: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 15px;
@@ -109,7 +110,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: 1;
     transition: opacity 1s;
 }
 
@@ -117,7 +118,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 .weather-overlay {
@@ -128,7 +129,7 @@ body {
     height: 100%;
     mix-blend-mode: screen;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
 }
 
 /* Weather Overlays */
