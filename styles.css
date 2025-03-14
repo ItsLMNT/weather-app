@@ -11,6 +11,7 @@ body {
     font-family: 'Arial', sans-serif;
     background: #000;
     color: white;
+    position: relative;
 }
 
 /* Search Container */
@@ -116,7 +117,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    filter: brightness(0.8); /* Slightly dim the city image */
+    opacity: 0.8;
 }
 
 .weather-overlay {
@@ -127,6 +128,7 @@ body {
     height: 100%;
     mix-blend-mode: screen;
     pointer-events: none;
+    z-index: 2;
 }
 
 /* Weather Overlays */
