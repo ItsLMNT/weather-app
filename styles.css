@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f2f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: #1a73e8;
+}
+
+.login-btn {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.map-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.portugal-map {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 600px;
+}
+
+.region {
+    flex: 1;
+    padding: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.region:hover {
+    background-color: #f8f9fa;
+}
+
+.north {
+    background-color: #e3f2fd;
+}
+
+.center {
+    background-color: #e8f5e9;
+}
+
+.south {
+    background-color: #fff3e0;
+}
+
+.cities {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.cities button {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cities button:hover {
+    background-color: #1a73e8;
+    color: white;
+    border-color: #1a73e8;
+}
+
+.weather-display {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#weather-info {
+    text-align: center;
+}
+
+#weather-info h2 {
+    color: #5f6368;
+    margin-bottom: 20px;
+}
+
+.weather-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.temperature {
+    font-size: 48px;
+    color: #1a73e8;
+}
+
+.description {
+    font-size: 24px;
+    color: #5f6368;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .cities {
+        justify-content: center;
+    }
+} 

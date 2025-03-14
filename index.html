@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portugal Weather App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Portugal Weather</h1>
+            <button class="login-btn">Create Account</button>
+        </header>
+
+        <div class="map-container">
+            <div class="portugal-map">
+                <div class="region north" onclick="showWeather('north')">
+                    <h2>North</h2>
+                    <div class="cities">
+                        <button onclick="getWeather('Porto')">Porto</button>
+                        <button onclick="getWeather('Braga')">Braga</button>
+                        <button onclick="getWeather('Viana do Castelo')">Viana do Castelo</button>
+                    </div>
+                </div>
+                <div class="region center" onclick="showWeather('center')">
+                    <h2>Center</h2>
+                    <div class="cities">
+                        <button onclick="getWeather('Lisbon')">Lisbon</button>
+                        <button onclick="getWeather('Coimbra')">Coimbra</button>
+                        <button onclick="getWeather('Aveiro')">Aveiro</button>
+                    </div>
+                </div>
+                <div class="region south" onclick="showWeather('south')">
+                    <h2>South</h2>
+                    <div class="cities">
+                        <button onclick="getWeather('Faro')">Faro</button>
+                        <button onclick="getWeather('Beja')">Beja</button>
+                        <button onclick="getWeather('Évora')">Évora</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="weather-display">
+            <div id="weather-info">
+                <h2>Select a city to see weather</h2>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
