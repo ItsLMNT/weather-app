@@ -67,9 +67,10 @@ body {
     width: 100%;
     height: 100%;
     z-index: 2;
-    filter: brightness(0.7);
+    filter: brightness(0.4);
     pointer-events: all;
     background: transparent !important;
+    transition: all 0.5s ease-in-out;
 }
 
 /* Weather Display */
@@ -85,6 +86,7 @@ body {
     padding: 20px;
     border-radius: 15px;
     min-width: 300px;
+    transition: opacity 0.3s ease-in-out;
 }
 
 .weather-details {
@@ -119,8 +121,9 @@ body {
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    opacity: 1 !important;
+    opacity: 0.7 !important;
     transition: all 1s ease-in-out;
+    filter: blur(1px);
 }
 
 .weather-overlay {
@@ -231,7 +234,7 @@ body {
     position: absolute;
     width: 2px;
     height: 20px;
-    background: linear-gradient(transparent, #fff);
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.8));
     animation: rain-fall linear infinite;
 }
 
@@ -313,8 +316,17 @@ body {
 }
 
 @keyframes rain-fall {
-    from { transform: translateY(-100vh); }
-    to { transform: translateY(100vh); }
+    0% {
+        transform: translateY(-100vh) skew(-20deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(100vh) skew(-20deg);
+        opacity: 0.4;
+    }
 }
 
 @keyframes heat-wave {
@@ -335,6 +347,132 @@ body {
 @keyframes clouds {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
+}
+
+/* Weather Effects */
+.weather-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transition: all 1s ease-in-out;
+}
+
+/* Rain Effect */
+.raindrop {
+    position: absolute;
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.8));
+    animation: rain-fall linear infinite;
+}
+
+@keyframes rain-fall {
+    0% {
+        transform: translateY(-100vh) skew(-20deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(100vh) skew(-20deg);
+        opacity: 0.4;
+    }
+}
+
+/* Snow Effect */
+.snowflake {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    animation: snow-fall linear infinite;
+    opacity: 0.8;
+}
+
+@keyframes snow-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+/* Sun Effect */
+.sun-effect {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: #ffd700;
+    border-radius: 50%;
+    box-shadow: 0 0 100px #ffd700;
+    animation: sun-pulse 4s ease-in-out infinite;
+}
+
+.sun-rays {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(255,215,0,0.8) 0%, transparent 70%);
+    animation: sun-rays 8s linear infinite;
+}
+
+@keyframes sun-rays {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Cloud Effect */
+.cloud-effect {
+    position: absolute;
+    width: 120px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    animation: float-cloud 20s linear infinite;
+    opacity: 0.8;
+}
+
+.cloud-effect:before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+}
+
+.cloud-effect:after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 60px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+}
+
+/* Weather Info Transitions */
+#weather-info {
+    transition: opacity 0.3s ease-in-out;
 }
 
 /* Responsive Design */
