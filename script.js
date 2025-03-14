@@ -430,4 +430,35 @@ window.addEventListener('resize', () => {
 function showWeather(region) {
     const weatherInfo = document.getElementById('weather-info');
     weatherInfo.innerHTML = `<h2>Select a city in ${region} region</h2>`;
-} 
+}
+
+// Add this function after your existing code
+async function testUnsplashAPI() {
+    try {
+        console.log('Testing Unsplash API...');
+        const response = await fetch(
+            'https://api.unsplash.com/photos/random?count=1',
+            {
+                headers: {
+                    'Authorization': `Client-ID ${UNSPLASH_API_KEY}`
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`Unsplash API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Unsplash API test successful:', data);
+        return true;
+    } catch (error) {
+        console.error('Unsplash API test failed:', error);
+        return false;
+    }
+}
+
+// Test the API when the page loads
+window.addEventListener('load', () => {
+    testUnsplashAPI();
+}); 
