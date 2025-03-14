@@ -1,5 +1,5 @@
 // Weather API key (using OpenWeatherMap API)
-const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb'; // Replace with your actual API key
+const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0'; // Replace with your actual API key
 
 function createWeatherBackground(weatherType) {
     // Remove existing background
