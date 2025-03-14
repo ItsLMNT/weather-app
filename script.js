@@ -74,49 +74,67 @@ searchInput.addEventListener('input', (e) => {
                 div.addEventListener('click', () => {
                     searchInput.value = result.display_name;
                     searchResults.style.display = 'none';
-                    focusLocation(result.lat, result.lon);
-                    getWeather(result.display_name.split(',')[0]);
+                    focusLocation(parseFloat(result.lat), parseFloat(result.lon));
                 });
                 searchResults.appendChild(div);
             });
         } catch (error) {
             console.error('Error searching locations:', error);
+            searchResults.innerHTML = '<div class="search-result-item">Error searching locations. Please try again.</div>';
+            searchResults.style.display = 'block';
         }
     }, 300);
 });
 
 // Focus on a location with smooth animation
 async function focusLocation(lat, lon) {
-    // Stop auto-rotation when focusing on a location
-    globe.autoRotate(false);
-    
-    // Animate to the new point of view
-    globe.pointOfView({
-        lat,
-        lng: lon,
-        altitude: 1.5
-    }, 1000);
-    
     try {
-        const weatherData = await getWeather(lat, lon);
+        // Stop auto-rotation when focusing on a location
+        globe.autoRotate(false);
+        
+        // Animate to the new point of view
+        globe.pointOfView({
+            lat,
+            lng: lon,
+            altitude: 1.5
+        }, 1000);
+        
+        // Show loading state
         const weatherInfo = document.getElementById('weather-info');
+        weatherInfo.innerHTML = '<p>Loading weather data...</p>';
+        
+        // Fetch weather data
+        const weatherData = await getWeather(lat, lon);
+        
+        // Update weather display
         weatherInfo.innerHTML = `
-            <h2>${weatherData.name}</h2>
-            <p>Temperature: ${weatherData.main.temp}°C</p>
-            <p>Weather: ${weatherData.weather[0].main}</p>
-            <p>Description: ${weatherData.weather[0].description}</p>
-            <p>Humidity: ${weatherData.main.humidity}%</p>
+            <div class="weather-details">
+                <h2>${weatherData.name}</h2>
+                <div class="temperature">${Math.round(weatherData.main.temp)}°C</div>
+                <div class="description">${weatherData.weather[0].description}</div>
+                <div>Humidity: ${weatherData.main.humidity}%</div>
+                <div>Wind: ${weatherData.wind.speed} m/s</div>
+            </div>
         `;
         
         // Create weather effect based on current conditions
         createWeatherEffect(weatherData.weather[0].main);
         
         // Get and set city background
-        await getCityImage(weatherData.name);
+        const cityImage = await getCityImage(weatherData.name);
+        if (cityImage) {
+            createCityBackground(cityImage);
+        }
         
     } catch (error) {
+        console.error('Error in focusLocation:', error);
         const weatherInfo = document.getElementById('weather-info');
-        weatherInfo.innerHTML = `<p class="error">Error loading weather data. Please try again.</p>`;
+        weatherInfo.innerHTML = `
+            <div class="weather-details error">
+                <p>Error loading weather data</p>
+                <p>Please try again later</p>
+            </div>
+        `;
     }
     
     // Resume auto-rotation after 10 seconds
@@ -286,16 +304,25 @@ function createCityBackground(imageUrl) {
 
 async function getWeather(lat, lon) {
     try {
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`);
+        console.log('Fetching weather for:', lat, lon);
+        const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+        );
         
         if (!response.ok) {
-            throw new Error(`Weather API error: ${response.status}`);
+            throw new Error(`Weather API error: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log('Weather data:', data);
+        
+        if (!data || !data.weather || !data.weather[0] || !data.main) {
+            throw new Error('Invalid weather data format');
+        }
+        
         return data;
     } catch (error) {
-        console.error('Error fetching weather data:', error);
+        console.error('Error fetching weather:', error);
         throw error;
     }
 }
