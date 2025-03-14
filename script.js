@@ -3,110 +3,118 @@ const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
 // Unsplash API key
 const UNSPLASH_API_KEY = 'dOPF9oZ1c1orjCY8oQ-12Tzd2wim3aVzlb9EQLgfiA4';
 
-// Initialize coordinates with a more zoomed out view
-let targetCoords = { lat: 0, lng: 0, altitude: 3.5 };
-let currentCoords = { lat: 0, lng: 0, altitude: 3.5 };
-
-// Initialize the globe with better quality and initial view
-const globe = Globe()
-    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
-    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-    .backgroundColor('rgba(0,0,0,0)')
-    .atmosphereColor('#1a237e')
-    .atmosphereAltitude(0.15)
-    .width(window.innerWidth)
-    .height(window.innerHeight)
-    .pointOfView({ lat: 0, lng: 0, altitude: 3.5 });
-
-// Set renderer to be transparent
-globe.renderer().setClearColor(0x000000, 0);
-
-// Mount globe
-const globeContainer = document.getElementById('globe-container');
-globe(globeContainer);
-
-// Enable controls after mounting
-globe
-    .enablePointerInteraction(true)
-    .enableZoom(true)
-    .rotateSpeed(0.5)
-    .autoRotate(true)
-    .autoRotateSpeed(0.5);
-
-// Add ambient light
-const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
-globe.scene().add(ambientLight);
-
-// Add directional light
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-directionalLight.position.set(1, 1, 1);
-globe.scene().add(directionalLight);
-
-// Smooth camera animation
-function animateCamera() {
-    currentCoords.lat += (targetCoords.lat - currentCoords.lat) * 0.1;
-    currentCoords.lng += (targetCoords.lng - currentCoords.lng) * 0.1;
-    currentCoords.altitude += (targetCoords.altitude - currentCoords.altitude) * 0.1;
+// Wait for the window to load before initializing the globe
+window.addEventListener('load', () => {
+    console.log('Initializing globe...');
     
-    globe.pointOfView(currentCoords);
-    
-    if (Math.abs(targetCoords.lat - currentCoords.lat) > 0.1 ||
-        Math.abs(targetCoords.lng - currentCoords.lng) > 0.1 ||
-        Math.abs(targetCoords.altitude - currentCoords.altitude) > 0.1) {
-        requestAnimationFrame(animateCamera);
-    }
-}
+    // Initialize the globe
+    const globe = Globe()
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl(null)
+        .backgroundColor('rgba(0,0,0,0)')
+        .width(window.innerWidth)
+        .height(window.innerHeight);
 
-// Search functionality
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-let searchTimeout;
+    // Get the container and mount the globe
+    const container = document.getElementById('globe-container');
+    console.log('Container found:', container);
+    
+    // Mount the globe
+    globe(container);
+    
+    // Configure the globe after mounting
+    globe
+        .pointOfView({ lat: 0, lng: 0, altitude: 2.5 })
+        .enablePointerInteraction(true)
+        .atmosphereColor('#1a237e')
+        .atmosphereAltitude(0.25);
 
-searchInput.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const query = e.target.value;
+    // Add lights to the scene
+    const scene = globe.scene();
     
-    if (query.length < 2) {
-        searchResults.style.display = 'none';
-        return;
-    }
+    // Add ambient light
+    const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
+    scene.add(ambientLight);
     
-    searchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-            );
-            const data = await response.json();
-            
-            searchResults.innerHTML = '';
-            searchResults.style.display = data.length ? 'block' : 'none';
-            
-            data.slice(0, 5).forEach(result => {
-                const div = document.createElement('div');
-                div.className = 'search-result-item';
-                div.textContent = result.display_name;
-                div.addEventListener('click', () => {
-                    searchInput.value = result.display_name;
-                    searchResults.style.display = 'none';
-                    focusLocation(parseFloat(result.lat), parseFloat(result.lon));
-                });
-                searchResults.appendChild(div);
-            });
-        } catch (error) {
-            console.error('Error searching locations:', error);
-            searchResults.innerHTML = '<div class="search-result-item">Error searching locations. Please try again.</div>';
-            searchResults.style.display = 'block';
-        }
-    }, 300);
+    // Add directional light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
+    
+    // Make renderer background transparent
+    globe.renderer().setClearColor(0x000000, 0);
+    
+    // Enable controls
+    globe
+        .enableZoom(true)
+        .rotateSpeed(0.6)
+        .autoRotate(true)
+        .autoRotateSpeed(0.5);
+
+    console.log('Globe initialized');
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        globe.width(width).height(height);
+    });
+
+    // Initialize search functionality
+    initializeSearch(globe);
 });
 
-// Focus on a location with smooth animation
-async function focusLocation(lat, lon) {
+function initializeSearch(globe) {
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value;
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+                );
+                const data = await response.json();
+                
+                searchResults.innerHTML = '';
+                searchResults.style.display = data.length ? 'block' : 'none';
+                
+                data.slice(0, 5).forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.textContent = result.display_name;
+                    div.addEventListener('click', () => {
+                        searchInput.value = result.display_name;
+                        searchResults.style.display = 'none';
+                        focusLocation(globe, parseFloat(result.lat), parseFloat(result.lon));
+                    });
+                    searchResults.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error searching locations:', error);
+                searchResults.innerHTML = '<div class="search-result-item">Error searching locations. Please try again.</div>';
+                searchResults.style.display = 'block';
+            }
+        }, 300);
+    });
+}
+
+async function focusLocation(globe, lat, lon) {
     try {
-        // Stop auto-rotation when focusing on a location
+        // Stop auto-rotation
         globe.autoRotate(false);
         
-        // Animate to the new point of view
+        // Animate to location
         globe.pointOfView({
             lat,
             lng: lon,
@@ -117,7 +125,7 @@ async function focusLocation(lat, lon) {
         const weatherInfo = document.getElementById('weather-info');
         weatherInfo.innerHTML = '<p>Loading weather data...</p>';
         
-        // Fetch weather data
+        // Get weather data
         const weatherData = await getWeather(lat, lon);
         
         // Update weather display
@@ -131,7 +139,7 @@ async function focusLocation(lat, lon) {
             </div>
         `;
         
-        // Create weather effect based on current conditions
+        // Create weather effect
         createWeatherEffect(weatherData.weather[0].main);
         
         // Get and set city background
@@ -416,16 +424,6 @@ function createCloudEffect(container) {
         container.appendChild(cloud);
     }
 }
-
-// Handle window resize
-window.addEventListener('resize', () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    
-    globe
-        .width(width)
-        .height(height);
-});
 
 function showWeather(region) {
     const weatherInfo = document.getElementById('weather-info');
