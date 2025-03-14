@@ -9,17 +9,14 @@ let currentCoords = { lat: 0, lng: 0, altitude: 3.5 };
 
 // Initialize the globe with better quality and initial view
 const globe = Globe()
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
-    .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundColor('rgba(0,0,0,0)')
     .atmosphereColor('#1a237e')
     .atmosphereAltitude(0.15)
-    .pointOfView({ lat: 0, lng: 0, altitude: 3.5 })
-    .enablePointerInteraction(true)
-    .enableZoom(true)
-    .rotateSpeed(0.5)
-    .autoRotate(true)
-    .autoRotateSpeed(0.5);
+    .width(window.innerWidth)
+    .height(window.innerHeight)
+    .pointOfView({ lat: 0, lng: 0, altitude: 3.5 });
 
 // Set renderer to be transparent
 globe.renderer().setClearColor(0x000000, 0);
@@ -27,6 +24,23 @@ globe.renderer().setClearColor(0x000000, 0);
 // Mount globe
 const globeContainer = document.getElementById('globe-container');
 globe(globeContainer);
+
+// Enable controls after mounting
+globe
+    .enablePointerInteraction(true)
+    .enableZoom(true)
+    .rotateSpeed(0.5)
+    .autoRotate(true)
+    .autoRotateSpeed(0.5);
+
+// Add ambient light
+const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
+globe.scene().add(ambientLight);
+
+// Add directional light
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+directionalLight.position.set(1, 1, 1);
+globe.scene().add(directionalLight);
 
 // Smooth camera animation
 function animateCamera() {
@@ -275,30 +289,31 @@ function createCityBackground(imageUrl) {
     console.log('Creating city background with URL:', imageUrl);
     
     // Remove any existing backgrounds
-    const oldBackgrounds = document.querySelectorAll('.weather-background');
+    const oldBackgrounds = document.querySelectorAll('.weather-background, .city-background');
     oldBackgrounds.forEach(bg => bg.remove());
 
     // Create new background div
     const background = document.createElement('div');
-    background.className = 'weather-background city-background';
+    background.className = 'city-background';
     
     // Set inline styles directly
-    background.style.backgroundImage = `url('${imageUrl}')`;
-    background.style.opacity = '1';
+    background.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('${imageUrl}');
+        background-size: cover;
+        background-position: center;
+        opacity: 0.7;
+        z-index: 1;
+    `;
     
     // Add to DOM
     document.body.prepend(background);
     
-    console.log('Background added to DOM');
-    
-    // Verify background
-    setTimeout(() => {
-        const computedStyle = window.getComputedStyle(background);
-        console.log('Verification - Background image:', computedStyle.backgroundImage);
-        console.log('Verification - Opacity:', computedStyle.opacity);
-        console.log('Verification - Z-index:', computedStyle.zIndex);
-    }, 100);
-    
+    console.log('City background added to DOM');
     return background;
 }
 
@@ -328,12 +343,14 @@ async function getWeather(lat, lon) {
 }
 
 function createWeatherEffect(weatherType) {
+    console.log('Creating weather effect for:', weatherType);
+    
+    // Remove any existing weather effects and backgrounds
+    const existingEffects = document.querySelectorAll('.weather-background, .city-background');
+    existingEffects.forEach(effect => effect.remove());
+    
     const weatherBackground = document.createElement('div');
     weatherBackground.className = 'weather-background';
-    
-    // Remove any existing weather effects
-    const existingEffects = document.querySelectorAll('.weather-background');
-    existingEffects.forEach(effect => effect.remove());
     
     switch (weatherType) {
         case 'Rain':
@@ -348,9 +365,13 @@ function createWeatherEffect(weatherType) {
         case 'Clouds':
             createCloudEffect(weatherBackground);
             break;
+        default:
+            console.log('Unknown weather type:', weatherType);
+            return;
     }
     
     document.body.appendChild(weatherBackground);
+    console.log('Weather effect created and added to DOM');
 }
 
 function createRainEffect(container) {
@@ -398,9 +419,12 @@ function createCloudEffect(container) {
 
 // Handle window resize
 window.addEventListener('resize', () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
     globe
-        .width(window.innerWidth)
-        .height(window.innerHeight);
+        .width(width)
+        .height(height);
 });
 
 function showWeather(region) {
