@@ -3,30 +3,30 @@ const API_KEY = '9ca16dd5cd4d928980d7f8fea1c09eb0';
 // Unsplash API key
 const UNSPLASH_API_KEY = 'dOPF9oZ1c1orjCY8oQ-12Tzd2wim3aVzlb9EQLgfiA4';
 
-// Initialize the globe
-const globe = Globe()
-    .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
-    .bumpImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
-    // Remove the fixed background
-    .backgroundColor('rgba(0,0,0,0)') // Make globe background transparent
-    .width(window.innerWidth)
-    .height(window.innerHeight)
-    (document.getElementById('globe-container'));
+// Initialize coordinates with a more zoomed out view
+let targetCoords = { lat: 0, lng: 0, altitude: 3.5 };
+let currentCoords = { lat: 0, lng: 0, altitude: 3.5 };
 
-// Make the scene background transparent
+// Initialize the globe with better quality and initial view
+const globe = Globe()
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+    .backgroundColor('rgba(0,0,0,0)')
+    .atmosphereColor('#1a237e')
+    .atmosphereAltitude(0.15)
+    .pointOfView({ lat: 0, lng: 0, altitude: 3.5 })
+    .enablePointerInteraction(true)
+    .enableZoom(true)
+    .rotateSpeed(0.5)
+    .autoRotate(true)
+    .autoRotateSpeed(0.5);
+
+// Set renderer to be transparent
 globe.renderer().setClearColor(0x000000, 0);
 
-// Adjust globe lighting
-const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
-globe.scene().add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-directionalLight.position.set(1, 1, 1);
-globe.scene().add(directionalLight);
-
-// Initialize coordinates
-let targetCoords = { lat: 0, lng: 0, altitude: 2.5 };
-let currentCoords = { lat: 0, lng: 0, altitude: 2.5 };
+// Mount globe
+const globeContainer = document.getElementById('globe-container');
+globe(globeContainer);
 
 // Smooth camera animation
 function animateCamera() {
@@ -85,14 +85,44 @@ searchInput.addEventListener('input', (e) => {
     }, 300);
 });
 
-// Focus on a location
-function focusLocation(lat, lng) {
-    targetCoords = {
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
+// Focus on a location with smooth animation
+async function focusLocation(lat, lon) {
+    // Stop auto-rotation when focusing on a location
+    globe.autoRotate(false);
+    
+    // Animate to the new point of view
+    globe.pointOfView({
+        lat,
+        lng: lon,
         altitude: 1.5
-    };
-    animateCamera();
+    }, 1000);
+    
+    try {
+        const weatherData = await getWeather(lat, lon);
+        const weatherInfo = document.getElementById('weather-info');
+        weatherInfo.innerHTML = `
+            <h2>${weatherData.name}</h2>
+            <p>Temperature: ${weatherData.main.temp}°C</p>
+            <p>Weather: ${weatherData.weather[0].main}</p>
+            <p>Description: ${weatherData.weather[0].description}</p>
+            <p>Humidity: ${weatherData.main.humidity}%</p>
+        `;
+        
+        // Create weather effect based on current conditions
+        createWeatherEffect(weatherData.weather[0].main);
+        
+        // Get and set city background
+        await getCityImage(weatherData.name);
+        
+    } catch (error) {
+        const weatherInfo = document.getElementById('weather-info');
+        weatherInfo.innerHTML = `<p class="error">Error loading weather data. Please try again.</p>`;
+    }
+    
+    // Resume auto-rotation after 10 seconds
+    setTimeout(() => {
+        globe.autoRotate(true);
+    }, 10000);
 }
 
 // Create dynamic background scene
@@ -254,58 +284,88 @@ function createCityBackground(imageUrl) {
     return background;
 }
 
-async function getWeather(city) {
+async function getWeather(lat, lon) {
     try {
-        console.log('Getting weather for:', city);
-        // Fetch weather data
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`);
-        const data = await response.json();
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`);
         
-        // Update the weather display
-        const weatherInfo = document.getElementById('weather-info');
-        weatherInfo.innerHTML = `
-            <div class="weather-details">
-                <h2>${city}</h2>
-                <div class="temperature">${Math.round(data.main.temp)}°C</div>
-                <div class="description">${data.weather[0].description}</div>
-                <div>Humidity: ${data.main.humidity}%</div>
-                <div>Wind: ${data.wind.speed} km/h</div>
-            </div>
-        `;
-
-        // Get and set city image as background
-        console.log('Fetching city image...');
-        const cityImage = await getCityImage(city);
-        if (cityImage) {
-            console.log('Creating background with image:', cityImage);
-            createCityBackground(cityImage);
-            
-            // Add weather overlay effects
-            const weatherOverlay = document.querySelector('.weather-overlay');
-            const weatherId = data.weather[0].id;
-            
-            if (weatherId >= 200 && weatherId < 600) {
-                weatherOverlay.className = 'weather-overlay rainy';
-            } else if (weatherId === 800) {
-                weatherOverlay.className = 'weather-overlay clear';
-            } else if (weatherId === 801) {
-                weatherOverlay.className = 'weather-overlay sunny';
-            } else if (weatherId >= 802) {
-                weatherOverlay.className = 'weather-overlay cloudy';
-            }
-        } else {
-            console.log('No city image found, using default background');
+        if (!response.ok) {
+            throw new Error(`Weather API error: ${response.status}`);
         }
-
-        // Focus globe on the city location
-        focusLocation(data.coord.lat, data.coord.lon);
-
+        
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error('Error in getWeather:', error);
-        document.getElementById('weather-info').innerHTML = `
-            <h2>Error loading weather data</h2>
-            <p>Please try again later</p>
-        `;
+        console.error('Error fetching weather data:', error);
+        throw error;
+    }
+}
+
+function createWeatherEffect(weatherType) {
+    const weatherBackground = document.createElement('div');
+    weatherBackground.className = 'weather-background';
+    
+    // Remove any existing weather effects
+    const existingEffects = document.querySelectorAll('.weather-background');
+    existingEffects.forEach(effect => effect.remove());
+    
+    switch (weatherType) {
+        case 'Rain':
+            createRainEffect(weatherBackground);
+            break;
+        case 'Snow':
+            createSnowEffect(weatherBackground);
+            break;
+        case 'Clear':
+            createSunEffect(weatherBackground);
+            break;
+        case 'Clouds':
+            createCloudEffect(weatherBackground);
+            break;
+    }
+    
+    document.body.appendChild(weatherBackground);
+}
+
+function createRainEffect(container) {
+    for (let i = 0; i < 100; i++) {
+        const raindrop = document.createElement('div');
+        raindrop.className = 'raindrop';
+        raindrop.style.left = `${Math.random() * 100}%`;
+        raindrop.style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
+        raindrop.style.animationDelay = `${Math.random() * 2}s`;
+        container.appendChild(raindrop);
+    }
+}
+
+function createSnowEffect(container) {
+    for (let i = 0; i < 50; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        snowflake.style.left = `${Math.random() * 100}%`;
+        snowflake.style.animationDuration = `${3 + Math.random() * 2}s`;
+        snowflake.style.animationDelay = `${Math.random() * 2}s`;
+        container.appendChild(snowflake);
+    }
+}
+
+function createSunEffect(container) {
+    const sun = document.createElement('div');
+    sun.className = 'sun-effect';
+    container.appendChild(sun);
+    
+    const rays = document.createElement('div');
+    rays.className = 'sun-rays';
+    container.appendChild(rays);
+}
+
+function createCloudEffect(container) {
+    for (let i = 0; i < 3; i++) {
+        const cloud = document.createElement('div');
+        cloud.className = 'cloud-effect';
+        cloud.style.left = `${20 + i * 30}%`;
+        cloud.style.top = `${20 + i * 15}%`;
+        cloud.style.animationDelay = `${i * 2}s`;
+        container.appendChild(cloud);
     }
 }
 
